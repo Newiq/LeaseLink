@@ -9,7 +9,7 @@ class PropertyController extends Controller
 {
     public function index()
     {
-        // 使用静态数据模拟房产列表
+        
         $properties = [
             [
                 'id' => 1,
