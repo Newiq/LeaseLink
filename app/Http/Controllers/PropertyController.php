@@ -7,34 +7,49 @@ use Illuminate\Http\Request;
 
 class PropertyController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $city = $request->query('city');
         
-        $properties = [
-            [
-                'id' => 1,
-                'title' => 'Modern Apartment',
-                'price' => 2000,
-                'beds' => 2,
-                'baths' => 2,
-                'sqft' => 1000,
-                'images' => ['properties/default.jpg'],
-                'city' => 'Toronto',
-                'province' => 'ON'
-            ],
-            [
-                'id' => 2,
-                'title' => 'Cozy Studio',
-                'price' => 1500,
-                'beds' => 1,
-                'baths' => 1,
-                'sqft' => 500,
-                'images' => ['properties/default.jpg'],
-                'city' => 'Vancouver',
-                'province' => 'BC'
-            ],
-        ];
+        if ($city) {
+            // 显示特定城市的房产
+            $properties = Property::with('primaryImage')  // 预加载主图片
+                                ->where('city', $city)
+                                ->where('is_available', true)
+                                ->get();
+            return view('properties.city', compact('properties', 'city'));
+        }
 
-        return view('properties.index', compact('properties'));
+        // 显示所有城市卡片
+        $cities = Property::select('city')
+            ->distinct()
+            ->get()
+            ->map(function ($property) {
+                $count = Property::where('city', $property->city)
+                                ->where('is_available', true)
+                                ->count();
+                $avgPrice = Property::where('city', $property->city)
+                                  ->where('is_available', true)
+                                  ->avg('price');
+                return [
+                    'city' => $property->city,
+                    'province' => $this->getProvince($property->city),
+                    'propertyCount' => $count,
+                    'averagePrice' => round($avgPrice),
+                    'imageUrl' => "images/cities/" . strtolower($property->city) . ".jpg"  // 移除 storage/
+                ];
+            });
+
+        return view('properties.index', compact('cities'));
+    }
+
+    private function getProvince($city)
+    {
+        return [
+            'Montreal' => 'QC',
+            'Ottawa' => 'ON',
+            'Toronto' => 'ON',
+            'Vancouver' => 'BC'
+        ][$city] ?? '';
     }
 } 
