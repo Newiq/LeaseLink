@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Property;
+use App\Models\Rental;
 
 class RentalController extends Controller
 {
@@ -52,8 +53,25 @@ class RentalController extends Controller
             'title' => 'required|string|max:255',
         ]);
 
-        // 只返回成功消息，不实际存储数据
+
         return redirect()->route('rentals.index')
             ->with('success', 'Rental posted successfully!');
+    }
+
+    public function show(Rental $rental)
+    {
+
+        $landlord = $rental->user;
+        
+        return view('rentals.show', [
+            'rental' => $rental,
+            'landlord' => $landlord
+        ]);
+    }
+
+    public function create(Request $request)
+    {
+        $property = Property::findOrFail($request->property_id);
+        return view('rentals.create', compact('property'));
     }
 }

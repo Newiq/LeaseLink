@@ -13,7 +13,7 @@ class PropertyController extends Controller
         
         if ($city) {
             // 显示特定城市的房产
-            $properties = Property::with('primaryImage')  // 预加载主图片
+            $properties = Property::with('primaryImage')
                                 ->where('city', $city)
                                 ->where('is_available', true)
                                 ->get();
@@ -36,7 +36,7 @@ class PropertyController extends Controller
                     'province' => $this->getProvince($property->city),
                     'propertyCount' => $count,
                     'averagePrice' => round($avgPrice),
-                    'imageUrl' => "images/cities/" . strtolower($property->city) . ".jpg"  // 移除 storage/
+                    'imageUrl' => "images/cities/" . strtolower($property->city) . ".jpg"
                 ];
             });
 
@@ -51,5 +51,10 @@ class PropertyController extends Controller
             'Toronto' => 'ON',
             'Vancouver' => 'BC'
         ][$city] ?? '';
+    }
+
+    public function show(Property $property)
+    {
+        return view('properties.show', compact('property'));
     }
 } 
