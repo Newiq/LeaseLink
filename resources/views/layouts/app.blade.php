@@ -58,36 +58,46 @@
             button.textContent = 'Signing in...';
             button.disabled = true;
 
+
             try {
-                const response = await fetch('/api/auth/login', {
+                await fetch('/sanctum/csrf-cookie', { credentials: 'include' }); 
+                const xsrfToken = decodeURIComponent(getCookie('XSRF-TOKEN')); 
+
+                const response = await fetch('/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-XSRF-TOKEN': xsrfToken
                     },
-                    credentials: 'same-origin',
+                    credentials: 'include',
                     body: JSON.stringify({
                         email: document.getElementById('email').value,
                         password: document.getElementById('password').value
                     })
                 });
 
+                const data = await response.json();
+
                 if (!response.ok) {
-                    throw new Error('Invalid credentials');
+                    throw new Error(data.message || 'Invalid credentials');
                 }
 
-                const data = await response.json();
-                localStorage.setItem('token', data.token);
-                window.location.href = '/';
+                window.location.reload();
             } catch (err) {
-                error.textContent = 'Invalid email or password';
+                error.textContent = err.message;
                 error.classList.remove('hidden');
             } finally {
                 button.textContent = 'Sign in';
                 button.disabled = false;
             }
         });
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
 
         function validatePassword(password) {
             const input = document.getElementById('register-password');
@@ -131,31 +141,35 @@
 
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const password = document.getElementById('register-password').value;
+            const button = document.getElementById('registerButton');
+            const error = document.getElementById('registerError');
             
-            if (!validatePassword(password)) {
-                const error = document.getElementById('registerError');
+            if (!validatePassword(document.getElementById('register-password').value)) {
                 error.textContent = 'Please ensure your password meets all requirements.';
                 error.classList.remove('hidden');
                 return;
             }
 
-            const button = document.getElementById('registerButton');
-            const error = document.getElementById('registerError');
             button.textContent = 'Registering...';
             button.disabled = true;
 
             try {
-                const response = await fetch('/api/auth/register', {
+                await fetch('/sanctum/csrf-cookie', { credentials: 'include' }); 
+                const xsrfToken = decodeURIComponent(getCookie('XSRF-TOKEN'));
+
+                const response = await fetch('/auth/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        'Accept': 'application/json',
+                        'X-XSRF-TOKEN': xsrfToken
                     },
+                    credentials: 'include',
                     body: JSON.stringify({
                         name: document.getElementById('register-name').value,
                         email: document.getElementById('register-email').value,
                         password: document.getElementById('register-password').value,
+                        password_confirmation: document.getElementById('register-password').value,
                         role: document.getElementById('register-role').value
                     })
                 });
@@ -163,14 +177,9 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    let errorMessage = 'Registration failed. ';
-                    if (data.errors) {
-                        errorMessage += Object.values(data.errors).flat().join(' ');
-                    }
-                    throw new Error(errorMessage);
+                    throw new Error(data.message || Object.values(data.errors || {}).flat().join(' '));
                 }
 
-                // 注册成功后重置表单和状态
                 document.getElementById('registerForm').reset();
                 document.getElementById('register-password').classList.remove('border-green-500');
                 document.querySelectorAll('#registerForm .flex.items-center span').forEach(span => {
@@ -178,8 +187,7 @@
                 });
                 closeLoginModal();
 
-                localStorage.setItem('token', data.token);
-                window.location.href = '/';
+                window.location.reload();
             } catch (err) {
                 error.textContent = err.message;
                 error.classList.remove('hidden');

@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +15,6 @@ Route::get('/rentals/create', [App\Http\Controllers\RentalController::class, 'cr
 Route::post('/rentals', [App\Http\Controllers\RentalController::class, 'store'])->name('rentals.store');
 Route::get('/rentals/{rental}', [App\Http\Controllers\RentalController::class, 'show'])->name('rentals.show');
 
-// 添加认证路由
-Route::post('/api/auth/register', [RegisterController::class, 'register']);
-Route::post('/api/auth/login', [LoginController::class, 'login']);
+Route::post('/auth/register', [RegisterController::class, 'register']);
+Route::post('/auth/login', [LoginController::class, 'login']);
+Route::post('/auth/logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
