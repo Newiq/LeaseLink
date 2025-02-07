@@ -4,6 +4,7 @@
 
 @section('content')
 <div class="max-w-6xl mx-auto">
+    <!-- Hero Section -->
     <div class="min-h-screen relative flex items-center" style="background-image: url('{{ asset('images/hero_house.png') }}'); background-size: cover; background-position: center;">
         <div class="absolute inset-0 bg-black/50"></div>
         <div class="relative z-1 w-full px-4 sm:px-6 pt-16">
@@ -61,100 +62,15 @@
                 <!-- Feature 3 -->
                 <div class="text-center">
                     <div class="flex items-center justify-center h-12 w-12 rounded-md bg-lease-dark text-white mx-auto">
-                        ⚡
+                        📋
                     </div>
-                    <h3 class="mt-6 text-lg font-medium text-lease-dark">Quick Process</h3>
+                    <h3 class="mt-6 text-lg font-medium text-lease-dark">Easy Application</h3>
                     <p class="mt-2 text-base text-gray-500">
-                        Streamlined rental process from search to signing
+                        Simple and straightforward rental application process
                     </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<div class="container mx-auto px-4">
-    <!-- City selection section -->
-    @if(isset($cities) && $cities->count() > 0)
-    <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">热门城市</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            @foreach($cities as $city)
-            <button class="city-btn p-4 text-center rounded-lg border-2 {{ ($selectedCity ?? '') == $city->id ? 'border-lease text-lease' : 'border-gray-200 hover:border-lease hover:text-lease' }}"
-                    data-city-id="{{ $city->id }}">
-                {{ $city->name }}
-            </button>
-            @endforeach
-        </div>
-    </div>
-    @endif
-
-    <!-- Property list section -->
-    <div id="propertyList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @forelse($properties ?? [] as $property)
-        <a href="{{ route('rentals.show', $property) }}" class="block transform hover:scale-105 transition duration-300">
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <img src="{{ asset($property->image_url) }}" alt="{{ $property->title }}" class="w-full h-48 object-cover">
-                <div class="p-4">
-                    <h3 class="text-lg font-semibold text-lease-dark mb-2">{{ $property->title }}</h3>
-                    <p class="text-gray-600 mb-2">¥{{ number_format($property->price, 2) }}/月</p>
-                    <p class="text-sm text-gray-500">{{ $property->address }}</p>
-                    <div class="mt-2 flex items-center text-sm text-gray-500">
-                        <span class="mr-2">{{ $property->area }}㎡</span>
-                        <span>{{ $property->layout }}</span>
-                    </div>
-                </div>
-            </div>
-        </a>
-        @empty
-        <p class="col-span-full text-center text-gray-500">No properties found</p>
-        @endforelse
-    </div>
-</div>
-
-@push('scripts')
-<script>
-    // 城市选择的 JavaScript 代码保持不变
-    document.querySelectorAll('.city-btn').forEach(button => {
-        button.addEventListener('click', async () => {
-            const cityId = button.dataset.cityId;
-            
-            // 更新按钮样式
-            document.querySelectorAll('.city-btn').forEach(btn => {
-                btn.classList.remove('border-lease', 'text-lease');
-                btn.classList.add('border-gray-200');
-            });
-            button.classList.add('border-lease', 'text-lease');
-            button.classList.remove('border-gray-200');
-            
-            try {
-                const response = await fetch(`/api/properties?city_id=${cityId}`);
-                const data = await response.json();
-                
-                // 更新房产列表
-                const propertyList = document.getElementById('propertyList');
-                propertyList.innerHTML = data.map(property => `
-                    <a href="/rentals/${property.id}" class="block transform hover:scale-105 transition duration-300">
-                        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                            <img src="${property.image_url}" alt="${property.title}" class="w-full h-48 object-cover">
-                            <div class="p-4">
-                                <h3 class="text-lg font-semibold text-lease-dark mb-2">${property.title}</h3>
-                                <p class="text-gray-600 mb-2">¥${Number(property.price).toLocaleString()}/月</p>
-                                <p class="text-sm text-gray-500">${property.address}</p>
-                                <div class="mt-2 flex items-center text-sm text-gray-500">
-                                    <span class="mr-2">${property.area}㎡</span>
-                                    <span>${property.layout}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                `).join('');
-                
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        });
-    });
-</script>
-@endpush
 @endsection
