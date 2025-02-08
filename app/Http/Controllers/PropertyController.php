@@ -53,6 +53,19 @@ class PropertyController extends Controller
         ][$city] ?? '';
     }
 
+    public function city($city)
+    {
+        $properties = Property::where('city', $city)
+            ->where('is_available', true)
+            ->with('images')
+            ->get();
+
+        return view('properties.city', [
+            'city' => $city,
+            'properties' => $properties
+        ]);
+    }
+
     public function show(Property $property)
     {
         return view('properties.show', compact('property'));

@@ -1,30 +1,46 @@
 @extends('layouts.app')
 
-@section('title', ucfirst($city))
+@section('title', $city . ' Properties')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-6">Properties in {{ ucfirst($city) }}</h1>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @foreach($properties as $property)
-        <a href="{{ route('properties.show', $property) }}" class="block transform hover:scale-105 transition duration-300">
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <img src="{{ asset($property->primaryImage?->url ?? 'images/placeholder.jpg') }}" 
-                     alt="{{ $property->title }}" 
-                     class="w-full h-48 object-cover">
-                <div class="p-4">
-                    <h3 class="text-lg font-semibold text-lease-dark mb-2">{{ $property->title }}</h3>
-                    <p class="text-gray-600 mb-2">¥{{ number_format($property->price) }}/月</p>
-                    <p class="text-sm text-gray-500">{{ $property->address }}</p>
-                    <div class="mt-2 flex items-center text-sm text-gray-500">
-                        <span class="mr-2">{{ $property->area }}㎡</span>
-                        <span>{{ $property->layout }}</span>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Properties in {{ $city }}</h1>
+        <a href="{{ route('properties.index') }}" class="text-lease hover:text-lease-dark">
+            &larr; Back to Cities
+        </a>
+    </div>
+
+    @if($properties->isEmpty())
+        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+            <p class="text-gray-600">No properties available in {{ $city }} at the moment.</p>
+        </div>
+    @else
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach($properties as $property)
+            <a href="{{ route('properties.show', $property) }}" 
+               class="block transform hover:scale-105 transition duration-300">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    @if($property->images->isNotEmpty())
+                        <img src="{{ asset($property->images->where('is_primary', true)->first()->image_url) }}" 
+                             alt="{{ $property->title }}"
+                             class="w-full h-48 object-cover">
+                    @endif
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-lease-dark mb-2">
+                            {{ $property->title }}
+                        </h3>
+                        <p class="text-gray-600 mb-2">
+                            {{ $property->bedrooms }} bed · {{ $property->bathrooms }} bath · {{ $property->sqft }} sqft
+                        </p>
+                        <p class="text-lease font-bold">
+                            ¥{{ number_format($property->price) }}/month
+                        </p>
                     </div>
                 </div>
-            </div>
-        </a>
-        @endforeach
-    </div>
+            </a>
+            @endforeach
+        </div>
+    @endif
 </div>
 @endsection 

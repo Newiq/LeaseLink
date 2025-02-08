@@ -28,7 +28,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Successfully logged in',
+                'user' => auth()->user(),
+                'redirect' => '/'  // 改为重定向到主页
+            ]);
+        }
+
+        return redirect('/');
     }
 
     /**

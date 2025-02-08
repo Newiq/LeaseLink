@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title') - {{ config('app.name') }}</title>
+    <title>@yield('title', config('app.name', 'Laravel'))</title>
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -66,15 +66,26 @@
             error.classList.add('hidden');
 
             try {
-                // 获取 CSRF token
-                const token = document.querySelector('meta[name="csrf-token"]').content;
+                const baseUrl = 'http://127.0.0.1:8000';
                 
-                const response = await fetch('/login', {  // 使用新的路径
+                await fetch(`${baseUrl}/sanctum/csrf-cookie`, {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const xsrfToken = decodeURIComponent(getCookie('XSRF-TOKEN'));
+                const response = await fetch(`${baseUrl}/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'X-CSRF-TOKEN': token
+                        'X-XSRF-TOKEN': xsrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     credentials: 'include',
                     body: JSON.stringify({
@@ -83,15 +94,17 @@
                     })
                 });
 
+                const data = await response.json();
+
                 if (!response.ok) {
-                    const data = await response.json();
                     throw new Error(data.message || 'Login failed');
                 }
 
-                window.location.reload();
+                window.location.href = '/';
             } catch (err) {
                 error.textContent = err.message;
                 error.classList.remove('hidden');
+                console.error('Login error:', err);
             } finally {
                 button.textContent = 'Sign In';
                 button.disabled = false;
@@ -153,15 +166,27 @@
             button.disabled = true;
 
             try {
-                await fetch('/sanctum/csrf-cookie', { credentials: 'include' }); 
+                const baseUrl = 'http://127.0.0.1:8000';
+                
+                await fetch(`${baseUrl}/sanctum/csrf-cookie`, {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+
                 const xsrfToken = decodeURIComponent(getCookie('XSRF-TOKEN'));
 
-                const response = await fetch('/auth/register', {
+                const response = await fetch(`${baseUrl}/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'X-XSRF-TOKEN': xsrfToken
+                        'X-XSRF-TOKEN': xsrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     credentials: 'include',
                     body: JSON.stringify({
