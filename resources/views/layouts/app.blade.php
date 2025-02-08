@@ -24,6 +24,12 @@
     @include('components.ai-chat-bubble')
 
     <script>
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
         function openLoginModal() {
             document.getElementById('loginModal').classList.remove('hidden');
         }
@@ -57,18 +63,18 @@
             const error = document.getElementById('loginError');
             button.textContent = 'Signing in...';
             button.disabled = true;
-
+            error.classList.add('hidden');
 
             try {
-                await fetch('/sanctum/csrf-cookie', { credentials: 'include' }); 
-                const xsrfToken = decodeURIComponent(getCookie('XSRF-TOKEN')); 
-
-                const response = await fetch('/auth/login', {
+                // 获取 CSRF token
+                const token = document.querySelector('meta[name="csrf-token"]').content;
+                
+                const response = await fetch('/login', {  // 使用新的路径
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'X-XSRF-TOKEN': xsrfToken
+                        'X-CSRF-TOKEN': token
                     },
                     credentials: 'include',
                     body: JSON.stringify({
@@ -77,10 +83,9 @@
                     })
                 });
 
-                const data = await response.json();
-
                 if (!response.ok) {
-                    throw new Error(data.message || 'Invalid credentials');
+                    const data = await response.json();
+                    throw new Error(data.message || 'Login failed');
                 }
 
                 window.location.reload();
@@ -88,16 +93,10 @@
                 error.textContent = err.message;
                 error.classList.remove('hidden');
             } finally {
-                button.textContent = 'Sign in';
+                button.textContent = 'Sign In';
                 button.disabled = false;
             }
         });
-
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-        }
 
         function validatePassword(password) {
             const input = document.getElementById('register-password');

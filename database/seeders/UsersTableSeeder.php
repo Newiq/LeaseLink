@@ -10,11 +10,15 @@ class UsersTableSeeder extends Seeder
 {
     public function run()
     {
-        User::create([
-            'name' => 'Test Tenant',
-            'email' => 'tenant1@hotmail.com',
-            'password' => Hash::make('12345678@Hqw'),
-            'role' => 'tenant'
-        ]);
+
+        if (!User::where('email', 'test@hotmail.com')->exists()) {
+            User::create([
+                'name' => 'qiwen',
+                'email' => 'test@hotmail.com',  
+                'password' => Hash::make('784751939@Hqw'),
+                'role' => 'tenant',
+            ]
+        );
+        }
     }
 } 

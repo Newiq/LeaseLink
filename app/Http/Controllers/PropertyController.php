@@ -12,7 +12,7 @@ class PropertyController extends Controller
         $city = $request->query('city');
         
         if ($city) {
-            // 显示特定城市的房产
+
             $properties = Property::with('primaryImage')
                                 ->where('city', $city)
                                 ->where('is_available', true)
@@ -20,7 +20,7 @@ class PropertyController extends Controller
             return view('properties.city', compact('properties', 'city'));
         }
 
-        // 显示所有城市卡片
+
         $cities = Property::select('city')
             ->distinct()
             ->get()

@@ -10,14 +10,15 @@
             </div>
 
             <!-- Login Form -->
-            <form id="loginForm" class="mt-4">
+            <form id="loginForm" class="mt-4" onsubmit="event.preventDefault();">
+                @csrf
                 <div id="loginError" class="hidden text-red-500 text-sm mb-4"></div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
                         Email
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                           id="email" type="email" required>
+                        id="email" type="email" required>
                 </div>
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
@@ -39,14 +40,14 @@
             </form>
 
             <!-- Register Form -->
-            <form id="registerForm" class="hidden mt-4">
+            <form id="registerForm" class="hidden mt-4 onsubmit="event.preventDefault();">
                 <div id="registerError" class="hidden text-red-500 text-sm mb-4"></div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="register-name">
                         Name
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                           id="register-name" type="text" required>
+                        id="register-name" type="text" required>
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="register-email">

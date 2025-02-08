@@ -12,6 +12,6 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        'auth/*'  // 暂时排除认证路由的 CSRF 验证
+        
     ];
 } 
