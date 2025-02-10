@@ -14,8 +14,20 @@ class FavoriteController extends Controller
 
     public function index()
     {
-        $favorites = auth()->user()->favoriteProperties()->with('images')->get();
-        return view('favorites.index', compact('favorites'));
+        try {
+            $favorites = auth()->user()
+                ->favoriteProperties()
+                ->with(['images' => function($query) {
+                    $query->orderBy('is_primary', 'desc')
+                          ->orderBy('id', 'asc');
+                }])
+                ->get();
+
+            return view('favorites.index', compact('favorites'));
+        } catch (\Exception $e) {
+            \Log::error('Error in favorites index: ' . $e->getMessage());
+            return back()->with('error', 'Unable to load favorites.');
+        }
     }
 
     public function toggle(Request $request, Property $property)

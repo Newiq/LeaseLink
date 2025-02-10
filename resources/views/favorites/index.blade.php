@@ -19,15 +19,18 @@
             <div class="bg-white rounded-lg shadow-md overflow-hidden">
                 <a href="{{ route('properties.show', $property) }}" class="block">
                     <div class="relative h-48">
-                        @if($property->images->isNotEmpty())
-                            <img src="{{ asset($property->images->where('is_primary', true)->first()->image_url) }}" 
-                                 alt="{{ $property->title }}"
-                                 class="w-full h-full object-cover">
-                        @else
-                            <img src="{{ asset('images/properties/default_property.jpg') }}" 
-                                 alt="{{ $property->title }}"
-                                 class="w-full h-full object-cover">
-                        @endif
+                        @php
+                            $imageUrl = asset('images/properties/default_property.jpg');
+                            if ($property->images && $property->images instanceof \Illuminate\Database\Eloquent\Collection) {
+                                $primaryImage = $property->images->first();
+                                if ($primaryImage) {
+                                    $imageUrl = asset($primaryImage->image_url);
+                                }
+                            }
+                        @endphp
+                        <img src="{{ $imageUrl }}" 
+                             alt="{{ $property->title }}"
+                             class="w-full h-full object-cover">
                     </div>
                 </a>
                 <div class="p-4">
