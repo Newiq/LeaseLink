@@ -23,11 +23,7 @@
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
                     <div class="relative h-48">
                         @if($property->images && $property->images->isNotEmpty())
-                            @php
-                                $primaryImage = $property->images->where('is_primary', true)->first() 
-                                    ?? $property->images->first();
-                            @endphp
-                            <img src="{{ asset($primaryImage->image_url) }}" 
+                            <img src="{{ asset($property->images->where('is_primary', true)->first()->image_url) }}" 
                                  alt="{{ $property->title }}"
                                  class="w-full h-full object-cover">
                         @else
@@ -35,6 +31,7 @@
                                  alt="{{ $property->title }}"
                                  class="w-full h-full object-cover">
                         @endif
+                        <x-favorite-button :property="$property" />
                     </div>
                     <div class="p-4">
                         <h3 class="text-lg font-semibold text-lease-dark mb-2">

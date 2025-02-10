@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Favorite;
 use App\Models\Property;
 use Illuminate\Http\Request;
 
@@ -15,25 +14,32 @@ class FavoriteController extends Controller
 
     public function index()
     {
-        $favorites = auth()->user()->favorites()->with('property')->get();
+        $favorites = auth()->user()->favoriteProperties()->with('images')->get();
         return view('favorites.index', compact('favorites'));
     }
 
-    public function store(Property $property)
+    public function toggle(Request $request, Property $property)
     {
-        auth()->user()->favorites()->create([
-            'property_id' => $property->id
-        ]);
+        $user = auth()->user();
+        $isFavorited = $user->favoriteProperties()->toggle($property->id);
+        
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'isFavorited' => count($isFavorited['attached']) > 0
+            ]);
+        }
 
-        return back()->with('success', 'Property added to favorites');
+        return back()->with('success', 
+            count($isFavorited['attached']) > 0 
+                ? 'Property added to favorites.' 
+                : 'Property removed from favorites.'
+        );
     }
 
-    public function destroy(Property $property)
+    public function remove(Property $property)
     {
-        auth()->user()->favorites()
-            ->where('property_id', $property->id)
-            ->delete();
-
-        return back()->with('success', 'Property removed from favorites');
+        auth()->user()->favoriteProperties()->detach($property->id);
+        return back()->with('success', 'Property removed from favorites.');
     }
 } 

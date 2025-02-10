@@ -27,6 +27,7 @@
                      alt="{{ $property->title }}"
                      class="w-full h-full object-cover">
             @endif
+            <x-favorite-button :property="$property" />
         </div>
 
         <!-- 属性信息 -->

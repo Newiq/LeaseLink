@@ -41,4 +41,9 @@ class Property extends Model
     {
         return $this->hasOne(PropertyImage::class)->where('is_primary', true);
     }
+
+    public function favoritedBy()
+    {
+        return $this->belongsToMany(User::class, 'favorites')->withTimestamps();
+    }
 }
