@@ -55,19 +55,30 @@ class PropertyController extends Controller
 
     public function city($city)
     {
-        $properties = Property::where('city', $city)
-            ->where('is_available', true)
-            ->with('images')
-            ->get();
+        try {
+            $properties = Property::where('city', $city)
+                ->where('is_available', true)
+                ->with(['images' => function($query) {
+                    $query->orderBy('is_primary', 'desc')
+                          ->orderBy('display_order', 'asc');
+                }])
+                ->get();
 
-        return view('properties.city', [
-            'city' => $city,
-            'properties' => $properties
-        ]);
+            return view('properties.city', [
+                'city' => $city,
+                'properties' => $properties
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in PropertyController@city: ' . $e->getMessage());
+            return back()->with('error', 'Unable to load properties for this city.');
+        }
     }
 
     public function show(Property $property)
     {
+        // 预加载关系
+        $property->load(['images', 'owner']);
+        
         return view('properties.show', compact('property'));
     }
 } 

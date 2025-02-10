@@ -66,9 +66,11 @@
             error.classList.add('hidden');
 
             try {
-                const baseUrl = 'http://127.0.0.1:8000';
+                const baseUrl = window.location.origin;  // 使用当前域名
                 
+                // 首先获取 CSRF cookie
                 await fetch(`${baseUrl}/sanctum/csrf-cookie`, {
+                    method: 'GET',
                     credentials: 'include',
                     headers: {
                         'Accept': 'application/json',
@@ -76,15 +78,18 @@
                     }
                 });
 
+                // 确保 cookie 已经设置
                 await new Promise(resolve => setTimeout(resolve, 100));
 
-                const xsrfToken = decodeURIComponent(getCookie('XSRF-TOKEN'));
+                // 从 meta 标签获取 CSRF token
+                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                
                 const response = await fetch(`${baseUrl}/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'X-XSRF-TOKEN': xsrfToken,
+                        'X-CSRF-TOKEN': token,
                         'X-Requested-With': 'XMLHttpRequest'
                     },
                     credentials: 'include',
@@ -94,13 +99,16 @@
                     })
                 });
 
-                const data = await response.json();
-
                 if (!response.ok) {
+                    const data = await response.json();
                     throw new Error(data.message || 'Login failed');
                 }
 
-                window.location.href = '/';
+                const data = await response.json();
+                
+                // 登录成功后刷新页面
+                window.location.href = data.redirect || '/';
+                
             } catch (err) {
                 error.textContent = err.message;
                 error.classList.remove('hidden');

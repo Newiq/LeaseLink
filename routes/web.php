@@ -12,22 +12,22 @@ Route::get('/properties', function () {
     $cities = [
         [
             'city' => 'Montreal',
-            'image' => 'images/properties/montreal/cover.jpg',
+            'image' => 'https://picsum.photos/800/600?random=1',
             'description' => 'Experience the charm of Montreal'
         ],
         [
             'city' => 'Ottawa',
-            'image' => 'images/properties/ottawa/cover.jpg',
+            'image' => 'https://picsum.photos/800/600?random=2',
             'description' => 'Discover Canada\'s capital'
         ],
         [
             'city' => 'Toronto',
-            'image' => 'images/properties/toronto/cover.jpg',
+            'image' => 'https://picsum.photos/800/600?random=3',
             'description' => 'Explore the vibrant city of Toronto'
         ],
         [
             'city' => 'Vancouver',
-            'image' => 'images/properties/vancouver/cover.jpg',
+            'image' => 'https://picsum.photos/800/600?random=4',
             'description' => 'Experience the beauty of Vancouver'
         ]
     ];

@@ -21,11 +21,21 @@
             <a href="{{ route('properties.show', $property) }}" 
                class="block transform hover:scale-105 transition duration-300">
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    @if($property->images->isNotEmpty())
-                        <img src="{{ asset($property->images->where('is_primary', true)->first()->image_url) }}" 
-                             alt="{{ $property->title }}"
-                             class="w-full h-48 object-cover">
-                    @endif
+                    <div class="relative h-48">
+                        @if($property->images && $property->images->isNotEmpty())
+                            @php
+                                $primaryImage = $property->images->where('is_primary', true)->first() 
+                                    ?? $property->images->first();
+                            @endphp
+                            <img src="{{ asset($primaryImage->image_url) }}" 
+                                 alt="{{ $property->title }}"
+                                 class="w-full h-full object-cover">
+                        @else
+                            <img src="{{ asset('images/properties/default_property.jpg') }}" 
+                                 alt="{{ $property->title }}"
+                                 class="w-full h-full object-cover">
+                        @endif
+                    </div>
                     <div class="p-4">
                         <h3 class="text-lg font-semibold text-lease-dark mb-2">
                             {{ $property->title }}
@@ -34,7 +44,7 @@
                             {{ $property->bedrooms }} bed · {{ $property->bathrooms }} bath · {{ $property->sqft }} sqft
                         </p>
                         <p class="text-lease font-bold">
-                            ¥{{ number_format($property->price) }}/month
+                            ${{ number_format($property->price) }}/month
                         </p>
                     </div>
                 </div>

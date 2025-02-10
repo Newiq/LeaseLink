@@ -4,21 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Property extends Model
 {
     protected $fillable = [
+        'user_id',
         'title',
         'description',
-        'price',
-        'beds',
-        'baths',
-        'sqft',
         'city',
-        'province',
         'address',
-        'postal_code',
-        'images',
+        'price',
+        'bedrooms',
+        'bathrooms',
+        'sqft',
         'is_available'
     ];
 
@@ -33,7 +32,7 @@ class Property extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function images()
+    public function images(): HasMany
     {
         return $this->hasMany(PropertyImage::class);
     }

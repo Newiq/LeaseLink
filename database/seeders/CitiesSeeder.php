@@ -61,15 +61,13 @@ class CitiesSeeder extends Seeder
                     'is_available' => true
                 ]);
 
-                $imageCount = rand(3, 5);
-                for ($j = 1; $j <= $imageCount; $j++) {
-                    PropertyImage::create([
-                        'property_id' => $property->id,
-                        'image_url' => "images/properties/" . strtolower($city) . "/property{$property->id}_$j.jpg",
-                        'is_primary' => $j === 1,
-                        'display_order' => $j
-                    ]);
-                }
+                // 创建默认图片记录
+                PropertyImage::create([
+                    'property_id' => $property->id,
+                    'image_url' => 'images/properties/default_property.jpg',
+                    'is_primary' => true,
+                    'display_order' => 1
+                ]);
             }
         }
     }

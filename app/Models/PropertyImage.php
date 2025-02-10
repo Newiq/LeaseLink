@@ -13,6 +13,10 @@ class PropertyImage extends Model
         'display_order'
     ];
 
+    protected $casts = [
+        'is_primary' => 'boolean'
+    ];
+
     public function property()
     {
         return $this->belongsTo(Property::class);
