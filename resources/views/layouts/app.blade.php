@@ -177,7 +177,7 @@
             button.disabled = true;
 
             try {
-                const baseUrl = 'http://127.0.0.1:8000';
+                const baseUrl = window.location.origin;
                 
                 await fetch(`${baseUrl}/sanctum/csrf-cookie`, {
                     credentials: 'include',
@@ -189,14 +189,14 @@
 
                 await new Promise(resolve => setTimeout(resolve, 100));
 
-                const xsrfToken = decodeURIComponent(getCookie('XSRF-TOKEN'));
+                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
                 const response = await fetch(`${baseUrl}/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'X-XSRF-TOKEN': xsrfToken,
+                        'X-CSRF-TOKEN': token,
                         'X-Requested-With': 'XMLHttpRequest'
                     },
                     credentials: 'include',
@@ -215,14 +215,9 @@
                     throw new Error(data.message || Object.values(data.errors || {}).flat().join(' '));
                 }
 
-                document.getElementById('registerForm').reset();
-                document.getElementById('register-password').classList.remove('border-green-500');
-                document.querySelectorAll('#registerForm .flex.items-center span').forEach(span => {
-                    span.innerHTML = '';
-                });
-                closeLoginModal();
+                // 注册成功后刷新页面或重定向
+                window.location.href = data.redirect || '/';
 
-                window.location.reload();
             } catch (err) {
                 error.textContent = err.message;
                 error.classList.remove('hidden');
