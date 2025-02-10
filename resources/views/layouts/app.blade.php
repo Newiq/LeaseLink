@@ -10,15 +10,17 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="bg-gray-100">
-    <div id="app">
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <div id="app" class="flex flex-col min-h-screen">
         @include('layouts.navigation')
         
-        <main>
+        <main class="flex-grow pt-16">
             @yield('content')
         </main>
 
-        @include('layouts.footer')
+        <footer class="mt-auto">
+            @include('layouts.footer')
+        </footer>
     </div>
 
     @include('components.login-modal')

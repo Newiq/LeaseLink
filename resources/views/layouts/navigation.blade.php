@@ -1,4 +1,4 @@
-<nav class="bg-lease-light/80 backdrop-blur-sm fixed w-full z-10">
+<nav class="bg-lease-light/80 backdrop-blur-sm fixed w-full z-50 top-0">
     <div class="container mx-auto px-4">
         <div class="w-full flex justify-between items-center h-16">
             <!-- Logo -->

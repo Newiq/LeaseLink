@@ -1,57 +1,107 @@
 @extends('layouts.app')
 
-@section('title', 'Apply for Rent')
+@section('title', 'List New Property')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-2xl mx-auto">
-        <h1 class="text-2xl font-bold mb-6">Apply for Rent</h1>
-        
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-semibold mb-4">Property Details</h2>
-            <div class="flex items-center mb-4">
-                <img src="{{ asset($property->primaryImage?->url ?? 'images/placeholder.jpg') }}" 
-                     alt="{{ $property->title }}" 
-                     class="w-24 h-24 object-cover rounded mr-4">
+        <h1 class="text-2xl font-bold mb-6">List Your Property</h1>
+
+        <form action="{{ route('rentals.store') }}" method="POST" class="space-y-6">
+            @csrf
+
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700">Property Title</label>
+                <input type="text" name="title" id="title" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-lease focus:ring-lease"
+                       value="{{ old('title') }}" required>
+                @error('title')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea name="description" id="description" rows="4" 
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-lease focus:ring-lease"
+                          required>{{ old('description') }}</textarea>
+                @error('description')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <h3 class="font-semibold">{{ $property->title }}</h3>
-                    <p class="text-gray-600">{{ $property->address }}</p>
-                    <p class="text-lease-primary font-semibold">¥{{ number_format($property->price) }}/month</p>
+                    <label for="city" class="block text-sm font-medium text-gray-700">City</label>
+                    <input type="text" name="city" id="city" 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-lease focus:ring-lease"
+                           value="{{ old('city') }}" required>
+                    @error('city')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
+                    <input type="text" name="address" id="address" 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-lease focus:ring-lease"
+                           value="{{ old('address') }}" required>
+                    @error('address')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
-        </div>
 
-        <form action="{{ route('rentals.store') }}" method="POST" class="bg-white rounded-lg shadow-md p-6">
-            @csrf
-            <input type="hidden" name="property_id" value="{{ $property->id }}">
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 font-medium mb-2">Move-in Date</label>
-                <input type="date" name="move_in_date" 
-                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-lease-primary"
-                       required>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="price" class="block text-sm font-medium text-gray-700">Monthly Rent ($)</label>
+                    <input type="number" name="price" id="price" 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-lease focus:ring-lease"
+                           value="{{ old('price') }}" required min="0" step="0.01">
+                    @error('price')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="sqft" class="block text-sm font-medium text-gray-700">Square Feet</label>
+                    <input type="number" name="sqft" id="sqft" 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-lease focus:ring-lease"
+                           value="{{ old('sqft') }}" required min="0">
+                    @error('sqft')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-gray-700 font-medium mb-2">Lease Term (months)</label>
-                <select name="lease_term" 
-                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-lease-primary"
-                        required>
-                    <option value="12">12 months</option>
-                    <option value="24">24 months</option>
-                </select>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="bedrooms" class="block text-sm font-medium text-gray-700">Bedrooms</label>
+                    <input type="number" name="bedrooms" id="bedrooms" 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-lease focus:ring-lease"
+                           value="{{ old('bedrooms') }}" required min="0">
+                    @error('bedrooms')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="bathrooms" class="block text-sm font-medium text-gray-700">Bathrooms</label>
+                    <input type="number" name="bathrooms" id="bathrooms" 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-lease focus:ring-lease"
+                           value="{{ old('bathrooms') }}" required min="0">
+                    @error('bathrooms')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-gray-700 font-medium mb-2">Additional Notes</label>
-                <textarea name="notes" rows="4" 
-                          class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-lease-primary"></textarea>
+            <div class="flex justify-end">
+                <button type="submit" 
+                        class="bg-lease text-white px-6 py-2 rounded-full hover:bg-lease-dark transition-colors">
+                    List Property
+                </button>
             </div>
-
-            <button type="submit" 
-                    class="w-full bg-lease-primary text-white py-3 px-4 rounded-lg hover:bg-lease-primary-dark transition duration-300">
-                Submit Application
-            </button>
         </form>
     </div>
 </div>

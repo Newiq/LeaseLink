@@ -2,76 +2,60 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Property;
-use App\Models\Rental;
+use Illuminate\Http\Request;
 
 class RentalController extends Controller
 {
-    private $mockData = [
-        'favorites' => [
-            [
-                'id' => 1,
-                'title' => 'Luxury Apartment',
-                'price' => 2500,
-                'location' => 'Downtown',
-                'image_url' => 'images/property1.jpg',
-                'beds' => 2,
-                'baths' => 2,
-                'sqft' => 1000
-            ],
-            [
-                'id' => 2,
-                'title' => 'Cozy Studio',
-                'price' => 1500,
-                'location' => 'Midtown',
-                'image_url' => 'images/property2.jpg'
-            ]
-        ],
-        'myListings' => [
-            [
-                'id' => 3,
-                'title' => 'Modern Condo',
-                'price' => 3000,
-                'location' => 'Uptown',
-                'image_url' => 'images/property3.jpg'
-            ]
-        ]
-    ];
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
 
     public function index()
     {
-        return view('rentals.index', [
-            'favorites' => collect($this->mockData['favorites']),
-            'myListings' => collect($this->mockData['myListings'])
-        ]);
+        $rentals = Property::where('user_id', auth()->id())
+                          ->with('images')
+                          ->latest()
+                          ->get();
+
+        return view('rentals.index', compact('rentals'));
+    }
+
+    public function create()
+    {
+        return view('rentals.create');
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'city' => 'required|string|max:100',
+            'address' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'bedrooms' => 'required|integer|min:0',
+            'bathrooms' => 'required|integer|min:0',
+            'sqft' => 'required|integer|min:0',
         ]);
 
+        $validated['user_id'] = auth()->id();
+        $validated['is_available'] = true;
 
-        return redirect()->route('rentals.index')
-            ->with('success', 'Rental posted successfully!');
+        $property = Property::create($validated);
+
+        return redirect()->route('rentals.show', $property)
+                        ->with('success', 'Property listed successfully!');
     }
 
-    public function show(Rental $rental)
+    public function show(Property $rental)
     {
+        if ($rental->user_id !== auth()->id()) {
+            abort(403);
+        }
 
-        $landlord = $rental->user;
-        
-        return view('rentals.show', [
-            'rental' => $rental,
-            'landlord' => $landlord
-        ]);
-    }
-
-    public function create(Request $request)
-    {
-        $property = Property::findOrFail($request->property_id);
-        return view('rentals.create', compact('property'));
+        $rental->load(['owner', 'images']);
+        return view('rentals.show', compact('rental'));
     }
 }

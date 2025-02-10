@@ -2,46 +2,42 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use App\Models\Property;
 use App\Models\PropertyImage;
-use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class CitiesSeeder extends Seeder
 {
     public function run(): void
     {
-        //lanlord example
-        $landlord = User::firstOrCreate(
-            ['email' => 'landlord@example.com'],
+        // 创建示例用户
+        $user = User::firstOrCreate(
+            ['email' => 'demo@example.com'],
             [
-                'name' => 'Test Landlord',
-                'password' => bcrypt('password'),
-                'role' => 'landlord'
+                'name' => 'Demo User',
+                'password' => Hash::make('password'),
+                'role' => 'user'
             ]
         );
 
-        
         $cities = [
             'Montreal' => [
-                'min_price' => 1500,
-                'max_price' => 3000,
-                'image_prefix' => 'montreal'
+                'min_price' => 1000,
+                'max_price' => 3000
             ],
             'Ottawa' => [
-                'min_price' => 1600,
-                'max_price' => 2800,
-                'image_prefix' => 'ottawa'
+                'min_price' => 1200,
+                'max_price' => 3500
             ],
             'Toronto' => [
-                'min_price' => 2000,
-                'max_price' => 4000,
-                'image_prefix' => 'toronto'
+                'min_price' => 1500,
+                'max_price' => 4000
             ],
             'Vancouver' => [
-                'min_price' => 2200,
-                'max_price' => 4500,
-                'image_prefix' => 'vancouver'
+                'min_price' => 1800,
+                'max_price' => 4500
             ]
         ];
 
@@ -49,7 +45,7 @@ class CitiesSeeder extends Seeder
             $count = rand(3, 5);
             for ($i = 1; $i <= $count; $i++) {
                 $property = Property::create([
-                    'user_id' => $landlord->id,
+                    'user_id' => $user->id,  // 使用创建的用户ID
                     'title' => "$city Apartment #$i",
                     'description' => "Beautiful apartment in $city with modern amenities",
                     'city' => $city,
