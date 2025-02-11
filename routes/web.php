@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\RentalController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -47,4 +48,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favorites/{property}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
     Route::delete('/favorites/{property}', [FavoriteController::class, 'remove'])->name('favorites.remove');
+    Route::get('/rentals/{rental}/edit', [RentalController::class, 'edit'])->name('rentals.edit');
+    Route::put('/rentals/{rental}', [RentalController::class, 'update'])->name('rentals.update');
+    Route::delete('/rentals/{rental}', [RentalController::class, 'destroy'])->name('rentals.destroy');
+    Route::delete('/rentals/{rental}/images/{image}', [RentalController::class, 'deleteImage'])->name('rentals.deleteImage');
 });
