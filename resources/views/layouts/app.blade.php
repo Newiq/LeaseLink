@@ -60,6 +60,12 @@
             }
         }
 
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(session('open_login'))
+                openLoginModal();
+            @endif
+        });
+
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const button = document.getElementById('loginButton');
@@ -69,11 +75,9 @@
             error.classList.add('hidden');
 
             try {
-                const baseUrl = window.location.origin;  // 使用当前域名
+                const baseUrl = window.location.origin;
                 
-                // 首先获取 CSRF cookie
                 await fetch(`${baseUrl}/sanctum/csrf-cookie`, {
-                    method: 'GET',
                     credentials: 'include',
                     headers: {
                         'Accept': 'application/json',
@@ -81,10 +85,8 @@
                     }
                 });
 
-                // 确保 cookie 已经设置
                 await new Promise(resolve => setTimeout(resolve, 100));
 
-                // 从 meta 标签获取 CSRF token
                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                 
                 const response = await fetch(`${baseUrl}/login`, {
@@ -109,8 +111,8 @@
 
                 const data = await response.json();
                 
-                // 登录成功后刷新页面
-                window.location.href = data.redirect || '/';
+                // 重定向到之前尝试访问的页面或默认页面
+                window.location.href = '{{ session('intended_url') }}' || data.redirect || '/';
                 
             } catch (err) {
                 error.textContent = err.message;

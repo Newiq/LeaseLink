@@ -14,10 +14,17 @@
                     Properties
                 </a>
                 
-                <a href="{{ url('/rentals') }}" 
-                   class="text-lease-dark hover:text-lease transition-colors">
-                    My Rentals
-                </a>
+                @auth
+                    <a href="{{ url('/rentals') }}" 
+                       class="text-lease-dark hover:text-lease transition-colors">
+                        My Rentals
+                    </a>
+                @else
+                    <button onclick="openLoginModal()" 
+                            class="text-lease-dark hover:text-lease transition-colors">
+                        My Rentals
+                    </button>
+                @endauth
 
                 @auth
                     <div class="relative" x-data="{ open: false }">

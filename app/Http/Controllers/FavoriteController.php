@@ -32,21 +32,29 @@ class FavoriteController extends Controller
 
     public function toggle(Request $request, Property $property)
     {
-        $user = auth()->user();
-        $isFavorited = $user->favoriteProperties()->toggle($property->id);
-        
-        if ($request->wantsJson()) {
+        try {
+            $user = auth()->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'error' => 'Unauthenticated',
+                    'should_login' => true
+                ], 401);
+            }
+
+            $isFavorited = $user->favoriteProperties()->toggle($property->id);
+            
             return response()->json([
-                'status' => 'success',
+                'success' => true,
                 'isFavorited' => count($isFavorited['attached']) > 0
             ]);
-        }
 
-        return back()->with('success', 
-            count($isFavorited['attached']) > 0 
-                ? 'Property added to favorites.' 
-                : 'Property removed from favorites.'
-        );
+        } catch (\Exception $e) {
+            \Log::error('Error in favorite toggle: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to update favorite status'
+            ], 500);
+        }
     }
 
     public function remove(Property $property)
