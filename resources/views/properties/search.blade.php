@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $city . ' Properties')
+@section('title', 'Search Results')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold">Properties in {{ $city }}</h1>
+        <h1 class="text-2xl font-bold">Search Results for "{{ $search }}"</h1>
         <a href="{{ route('properties.index') }}" class="text-lease hover:text-lease-dark">
             &larr; Back to Cities
         </a>
@@ -13,7 +13,7 @@
 
     @if($properties->isEmpty())
         <div class="bg-white rounded-lg shadow-md p-6 text-center">
-            <p class="text-gray-600">No properties available in {{ $city }} at the moment.</p>
+            <p class="text-gray-600">No properties found matching "{{ $search }}".</p>
         </div>
     @else
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -25,17 +25,17 @@
                         @php
                             $imageUrl = asset('images/properties/default_property.jpg');
                             if ($property->images && $property->images->isNotEmpty()) {
-                                $primaryImage = $property->images->where('is_primary', true)->first() 
-                                              ?? $property->images->first();
-                                if ($primaryImage && file_exists(public_path($primaryImage->image_url))) {
+                                $primaryImage = $property->images->where('is_primary', true)->first();
+                                if ($primaryImage) {
                                     $imageUrl = asset($primaryImage->image_url);
+                                } elseif ($property->images->first()) {
+                                    $imageUrl = asset($property->images->first()->image_url);
                                 }
                             }
                         @endphp
                         <img src="{{ $imageUrl }}" 
                              alt="{{ $property->title }}"
-                             class="w-full h-full object-cover"
-                             onerror="this.onerror=null; this.src='{{ asset('images/properties/default_property.jpg') }}';">
+                             class="w-full h-full object-cover">
                         <x-favorite-button :property="$property" />
                     </div>
                     <div class="p-4">

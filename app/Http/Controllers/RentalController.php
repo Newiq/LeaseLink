@@ -6,18 +6,28 @@ use App\Models\Property;
 use App\Models\PropertyImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class RentalController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
+        
+        if (!Storage::disk('public')->exists('images/properties/default_property.jpg')) {
+            Storage::disk('public')->copy(
+                'images/default_property.jpg',
+                'images/properties/default_property.jpg'
+            );
+        }
     }
 
     public function index()
     {
         try {
-            $rentals = Property::where('user_id', auth()->id())
+            $rentals = Property::where('user_id', Auth::id())
                 ->with(['images' => function($query) {
                     $query->orderBy('is_primary', 'desc')
                           ->orderBy('id', 'asc');
@@ -27,7 +37,7 @@ class RentalController extends Controller
 
             return view('rentals.index', compact('rentals'));
         } catch (\Exception $e) {
-            \Log::error('Error in rentals index: ' . $e->getMessage());
+            Log::error('Error in rentals index: ' . $e->getMessage());
             return back()->with('error', 'Unable to load rentals.');
         }
     }
@@ -57,34 +67,68 @@ class RentalController extends Controller
             'images.*.max' => 'Each image must not exceed 10MB'
         ]);
 
-        $validated['user_id'] = auth()->id();
+        $validated['user_id'] = Auth::id();
         $validated['is_available'] = true;
 
         try {
-            \DB::beginTransaction();
+            DB::beginTransaction();
 
             $property = Property::create($validated);
 
             if ($request->hasFile('images')) {
+                $directory = public_path('images/properties');
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0777, true);
+                }
+
+                $maxDisplayOrder = PropertyImage::where('property_id', $property->id)
+                    ->max('display_order') ?? -1;
+
                 foreach ($request->file('images') as $index => $image) {
-                    $path = $image->store('images/properties', 'public');
+                    $filename = uniqid(time() . '_') . '.' . $image->getClientOriginalExtension();
                     
-                    PropertyImage::create([
-                        'property_id' => $property->id,
-                        'image_url' => $path,
-                        'is_primary' => $index === 0,
-                        'display_order' => $index
-                    ]);
+                    try {
+                        if (!$image->move($directory, $filename)) {
+                            throw new \Exception("Failed to move uploaded file");
+                        }
+                        
+                        $path = 'images/properties/' . $filename;
+                        
+                        if (!file_exists(public_path($path))) {
+                            throw new \Exception("File does not exist after upload: " . $path);
+                        }
+
+                        PropertyImage::create([
+                            'property_id' => $property->id,
+                            'image_url' => $path,
+                            'is_primary' => ($index === 0), 
+                            'display_order' => $maxDisplayOrder + $index + 1
+                        ]);
+                        
+                        Log::info('Image uploaded successfully', [
+                            'path' => $path,
+                            'exists' => file_exists(public_path($path)),
+                            'is_primary' => ($index === 0)
+                        ]);
+                        
+                    } catch (\Exception $e) {
+                        Log::error('Failed to process image:', [
+                            'error' => $e->getMessage(),
+                            'file' => $filename
+                        ]);
+                        throw $e;
+                    }
                 }
             }
 
-            \DB::commit();
+            DB::commit();
             return redirect()->route('rentals.show', $property)
                             ->with('success', 'Property listed successfully!');
 
         } catch (\Exception $e) {
-            \DB::rollBack();
-            \Log::error('Error creating property: ' . $e->getMessage());
+            DB::rollBack();
+            Log::error('Error creating property: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
             return back()->withInput()
                         ->with('error', 'Failed to create property. Please try again.');
         }
@@ -92,26 +136,31 @@ class RentalController extends Controller
 
     public function show(Property $rental)
     {
-        if ($rental->user_id !== auth()->id()) {
+        if ($rental->user_id !== Auth::id()) {
             abort(403);
         }
 
-        $rental->load(['owner', 'images']);
+        $rental->load(['owner', 'images' => function($query) {
+            $query->orderBy('is_primary', 'desc')
+                  ->orderBy('display_order', 'asc');
+        }]);
+        
         return view('rentals.show', compact('rental'));
     }
 
     public function edit(Property $rental)
     {
-        if ($rental->user_id !== auth()->id()) {
+        if ($rental->user_id !== Auth::id()) {
             abort(403);
         }
 
+        $rental->load('images');
         return view('rentals.edit', compact('rental'));
     }
 
     public function update(Request $request, Property $rental)
     {
-        if ($rental->user_id !== auth()->id()) {
+        if ($rental->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -128,30 +177,62 @@ class RentalController extends Controller
         ]);
 
         try {
-            \DB::beginTransaction();
+            DB::beginTransaction();
 
             $rental->update($validated);
 
             if ($request->hasFile('images')) {
+                $directory = public_path('images/properties');
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0777, true);
+                }
+
+                $maxDisplayOrder = $rental->images()
+                    ->max('display_order') ?? -1;
+
                 foreach ($request->file('images') as $index => $image) {
-                    $path = $image->store('images/properties', 'public');
+                    $filename = uniqid(time() . '_') . '.' . $image->getClientOriginalExtension();
                     
-                    PropertyImage::create([
-                        'property_id' => $rental->id,
-                        'image_url' => $path,
-                        'is_primary' => false,
-                        'display_order' => $rental->images->count() + $index
-                    ]);
+                    try {
+                        if (!$image->move($directory, $filename)) {
+                            throw new \Exception("Failed to move uploaded file");
+                        }
+                        
+                        $path = 'images/properties/' . $filename;
+                        
+                        if (!file_exists(public_path($path))) {
+                            throw new \Exception("File does not exist after upload: " . $path);
+                        }
+                        
+                        PropertyImage::create([
+                            'property_id' => $rental->id,
+                            'image_url' => $path,
+                            'is_primary' => $rental->images()->count() === 0 && $index === 0, // 只有在没有其他图片时，第一张图片才是主图
+                            'display_order' => $maxDisplayOrder + $index + 1
+                        ]);
+                        
+                        Log::info('Image uploaded successfully', [
+                            'path' => $path,
+                            'exists' => file_exists(public_path($path))
+                        ]);
+                        
+                    } catch (\Exception $e) {
+                        Log::error('Failed to process image:', [
+                            'error' => $e->getMessage(),
+                            'file' => $filename
+                        ]);
+                        throw $e;
+                    }
                 }
             }
 
-            \DB::commit();
+            DB::commit();
             return redirect()->route('rentals.show', $rental)
                             ->with('success', 'Property updated successfully!');
 
         } catch (\Exception $e) {
-            \DB::rollBack();
-            \Log::error('Error updating property: ' . $e->getMessage());
+            DB::rollBack();
+            Log::error('Error updating property: ' . $e->getMessage());
             return back()->withInput()
                         ->with('error', 'Failed to update property. Please try again.');
         }
@@ -160,18 +241,18 @@ class RentalController extends Controller
     public function destroy(Property $rental)
     {
         try {
-            // 检查权限
-            if ($rental->user_id !== auth()->id()) {
+
+            if ($rental->user_id !== Auth::id()) {
                 return back()->with('error', 'You are not authorized to delete this property.');
             }
 
-            // 加载图片关系
+
             $rental->load('images');
 
-            // 开始事务
-            \DB::beginTransaction();
 
-            // 删除相关的图片文件
+            DB::beginTransaction();
+
+
             if ($rental->images) {
                 foreach ($rental->images as $image) {
                     try {
@@ -180,28 +261,27 @@ class RentalController extends Controller
                             Storage::disk('public')->delete($path);
                         }
                     } catch (\Exception $e) {
-                        \Log::warning("Failed to delete image file: {$image->image_url}, Error: " . $e->getMessage());
+                        Log::warning("Failed to delete image file: {$image->image_url}, Error: " . $e->getMessage());
                     }
                 }
             }
 
-            // 删除数据库记录
+
             $rental->images()->delete();
             $rental->delete();
 
-            // 提交事务
-            \DB::commit();
+
+            DB::commit();
 
             return redirect()->route('rentals.index')
                             ->with('success', 'Property deleted successfully!');
 
         } catch (\Exception $e) {
-            // 回滚事务
-            \DB::rollBack();
+
+            DB::rollBack();
             
-            // 记录错误
-            \Log::error('Error deleting property: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            Log::error('Error deleting property: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
             
             return back()->with('error', 'Failed to delete property. Please try again.');
         }
@@ -209,7 +289,7 @@ class RentalController extends Controller
 
     public function deleteImage(Property $rental, PropertyImage $image)
     {
-        if ($rental->user_id !== auth()->id() || $image->property_id !== $rental->id) {
+        if ($rental->user_id !== Auth::id() || $image->property_id !== $rental->id) {
             abort(403);
         }
 
@@ -218,7 +298,7 @@ class RentalController extends Controller
             $image->delete();
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
-            \Log::error('Error deleting image: ' . $e->getMessage());
+            Log::error('Error deleting image: ' . $e->getMessage());
             return response()->json(['success' => false], 500);
         }
     }

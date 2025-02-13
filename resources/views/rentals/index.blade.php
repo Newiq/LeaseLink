@@ -4,6 +4,7 @@
 
 @php
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 @endphp
 
 @section('content')
@@ -47,13 +48,18 @@ use Illuminate\Support\Facades\Storage;
                         if ($rental->images && $rental->images->isNotEmpty()) {
                             $primaryImage = $rental->images->where('is_primary', true)->first();
                             if ($primaryImage) {
-                                $imageUrl = Storage::disk('public')->url($primaryImage->image_url);
+                                $imageUrl = asset($primaryImage->image_url);
+                                // 调试信息
+                                Log::info('Image URL:', ['url' => $imageUrl, 'path' => $primaryImage->image_url]);
+                            } elseif ($rental->images->first()) {
+                                $imageUrl = asset($rental->images->first()->image_url);
                             }
                         }
                     @endphp
                     <img src="{{ $imageUrl }}" 
                          alt="{{ $rental->title }}"
-                         class="w-full h-full object-cover">
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='{{ asset('images/properties/default_property.jpg') }}';">
                 </div>
                 <div class="p-4">
                     <h3 class="text-lg font-semibold text-lease-dark">{{ $rental->title }}</h3>

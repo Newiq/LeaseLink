@@ -21,4 +21,14 @@ class PropertyImage extends Model
     {
         return $this->belongsTo(Property::class);
     }
+
+    public function user()
+    {
+        return $this->property->user();
+    }
+
+    public function getImageUrlAttribute($value)
+    {
+        return $value;
+    }
 } 

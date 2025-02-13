@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="max-w-6xl mx-auto">
-    <!-- Hero Section -->
+
     <div class="min-h-screen relative flex items-center" style="background-image: url('{{ asset('images/hero_house.png') }}'); background-size: cover; background-position: center;">
         <div class="absolute inset-0 bg-black/50"></div>
         <div class="relative z-1 w-full px-4 sm:px-6 pt-16">
@@ -32,7 +32,7 @@
         </div>
     </div>
 
-    <!-- Feature Section -->
+
     <div class="py-12 bg-lease-peach rounded-lg mt-20 relative z-10 mx-4 my-10">
         <div class="max-w-xl mx-auto px-4 sm:px-6 lg:max-w-7xl lg:px-8">
             <h2 class="sr-only">Features</h2>
